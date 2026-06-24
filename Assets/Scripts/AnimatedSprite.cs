@@ -4,6 +4,8 @@ public class AnimatedSprite : MonoBehaviour
 {
     public Sprite[] runSprites;
     public Sprite[] jumpSprites;
+    public Sprite[] doubleJumpSprites;
+    public Sprite[] slideSprites;
 
     private SpriteRenderer spriteRenderer;
     private Sprite[] currentSprites;
@@ -16,7 +18,10 @@ public class AnimatedSprite : MonoBehaviour
 
     private void OnEnable()
     {
-        EnsureSpriteRenderer();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        currentSprites = null;
+        frame = 0;
 
         PlayRunAnimation();
 
@@ -29,81 +34,58 @@ public class AnimatedSprite : MonoBehaviour
         CancelInvoke();
     }
 
-    private void EnsureSpriteRenderer()
-    {
-        if (spriteRenderer == null)
-        {
-            spriteRenderer = GetComponent<SpriteRenderer>();
-        }
-    }
-
     private void Animate()
     {
-        EnsureSpriteRenderer();
-
-        if (spriteRenderer == null)
+        if (spriteRenderer == null || currentSprites == null || currentSprites.Length == 0)
         {
-            Debug.LogError("No SpriteRenderer found on Player.");
+            Invoke(nameof(Animate), 0.1f);
             return;
-        }
-
-        if (currentSprites == null || currentSprites.Length == 0)
-        {
-            return;
-        }
-
-        frame++;
-
-        if (frame >= currentSprites.Length)
-        {
-            frame = 0;
         }
 
         spriteRenderer.sprite = currentSprites[frame];
+        frame = (frame + 1) % currentSprites.Length;
 
         float animationSpeed = 8f;
 
         if (GameManager.Instance != null && GameManager.Instance.gameSpeed > 0f)
-        {
             animationSpeed = GameManager.Instance.gameSpeed;
-        }
 
         Invoke(nameof(Animate), 1f / animationSpeed);
     }
 
-    public void PlayRunAnimation()
+    private void SetAnimation(Sprite[] sprites)
     {
-        EnsureSpriteRenderer();
-
-        if (currentSprites == runSprites)
-        {
+        if (sprites == null || sprites.Length == 0)
             return;
-        }
 
-        currentSprites = runSprites;
+        // Prevent the same animation from restarting every frame
+        if (currentSprites == sprites)
+            return;
+
+        currentSprites = sprites;
         frame = 0;
 
-        if (spriteRenderer != null && runSprites != null && runSprites.Length > 0)
-        {
-            spriteRenderer.sprite = runSprites[0];
-        }
+        if (spriteRenderer != null)
+            spriteRenderer.sprite = currentSprites[0];
+    }
+
+    public void PlayRunAnimation()
+    {
+        SetAnimation(runSprites);
     }
 
     public void PlayJumpAnimation()
     {
-        EnsureSpriteRenderer();
+        SetAnimation(jumpSprites);
+    }
 
-        if (currentSprites == jumpSprites)
-        {
-            return;
-        }
+    public void PlayDoubleJumpAnimation()
+    {
+        SetAnimation(doubleJumpSprites);
+    }
 
-        currentSprites = jumpSprites;
-        frame = 0;
-
-        if (spriteRenderer != null && jumpSprites != null && jumpSprites.Length > 0)
-        {
-            spriteRenderer.sprite = jumpSprites[0];
-        }
+    public void PlaySlideAnimation()
+    {
+        SetAnimation(slideSprites);
     }
 }
