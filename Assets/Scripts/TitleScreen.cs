@@ -58,7 +58,7 @@ public class TitleScreen : MonoBehaviour
         if (starting) return;
         if (optionsOpen) return;
 
-        // ignore mouse clicks, only keyboard/gamepad
+        // ignore mouse clicks, only keyboard/gamepad.
         if (Input.anyKeyDown &&
             !Input.GetMouseButtonDown(0) &&
             !Input.GetMouseButtonDown(1))
