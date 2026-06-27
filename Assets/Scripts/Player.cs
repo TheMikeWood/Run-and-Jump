@@ -28,12 +28,27 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject runHitbox;
     [SerializeField] private GameObject slideHitbox;
 
+    [Header("Touch Controls")]
+    [SerializeField] private float swipeThreshold = 80f;
+
+    private Vector2 touchStartPosition;
+    private bool touchStarted = false;
+
+    [Header("Sound Effects")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip jumpSfx;
+    [SerializeField] private AudioClip doubleJumpSfx;
+    [SerializeField] private AudioClip slideSfx;
+
     private bool wasGrounded = false;
 
     private void Awake()
     {
         character = GetComponent<CharacterController>();
         animatedSprite = GetComponent<AnimatedSprite>();
+
+        if (sfxSource == null)
+            sfxSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
@@ -47,6 +62,8 @@ public class Player : MonoBehaviour
 
         coyoteTimer = coyoteTime;
         wasGrounded = false;
+
+        touchStarted = false;
 
         if (runHitbox != null)
             runHitbox.SetActive(true);
@@ -80,8 +97,8 @@ public class Player : MonoBehaviour
             animatedSprite?.PlayRunAnimation();
         }
 
-        // Jump input
-        if (Input.GetButtonDown("Jump") && !isSliding)
+        // Keyboard jump input
+        if (Input.GetButtonDown("Jump"))
         {
             if (jumpsUsed < maxJumps)
             {
@@ -89,7 +106,7 @@ public class Player : MonoBehaviour
             }
         }
 
-        // Slide input
+        // Keyboard slide input
         if (
             Input.GetKeyDown(KeyCode.LeftControl) ||
             Input.GetKeyDown(KeyCode.RightControl) ||
@@ -102,6 +119,9 @@ public class Player : MonoBehaviour
                 StartSlide();
             }
         }
+
+        // Phone / touch input
+        HandleTouchInput();
 
         // Slide timer
         if (isSliding)
@@ -121,22 +141,69 @@ public class Player : MonoBehaviour
         wasGrounded = grounded;
     }
 
+    private void HandleTouchInput()
+    {
+        if (Input.touchCount <= 0)
+            return;
+
+        Touch touch = Input.GetTouch(0);
+
+        if (touch.phase == TouchPhase.Began)
+        {
+            touchStartPosition = touch.position;
+            touchStarted = true;
+        }
+
+        if (touch.phase == TouchPhase.Ended && touchStarted)
+        {
+            Vector2 touchEndPosition = touch.position;
+            Vector2 swipeDelta = touchEndPosition - touchStartPosition;
+
+            bool isSwipeDown =
+                swipeDelta.y < -swipeThreshold &&
+                Mathf.Abs(swipeDelta.y) > Mathf.Abs(swipeDelta.x);
+
+            if (isSwipeDown)
+            {
+                if (coyoteTimer > 0f && !isSliding)
+                {
+                    StartSlide();
+                }
+            }
+            else
+            {
+                if (jumpsUsed < maxJumps)
+                {
+                    Jump();
+                }
+            }
+
+            touchStarted = false;
+        }
+    }
+
     private void Jump()
     {
         direction.y = jumpForce;
         jumpsUsed++;
 
-        // Stop slide if somehow jump happens during slide state
+        // This lets the player jump out of a slide.
         if (isSliding)
             EndSlide();
 
         if (jumpsUsed == 1)
         {
             animatedSprite?.PlayJumpAnimation();
+            PlaySfx(jumpSfx);
         }
         else if (jumpsUsed == 2)
         {
             animatedSprite?.PlayDoubleJumpAnimation();
+
+            if (doubleJumpSfx != null)
+                PlaySfx(doubleJumpSfx);
+            else
+                PlaySfx(jumpSfx);
         }
     }
 
@@ -152,6 +219,7 @@ public class Player : MonoBehaviour
             slideHitbox.SetActive(true);
 
         animatedSprite?.PlaySlideAnimation();
+        PlaySfx(slideSfx);
     }
 
     private void EndSlide()
@@ -168,5 +236,13 @@ public class Player : MonoBehaviour
         {
             animatedSprite?.PlayRunAnimation();
         }
+    }
+
+    private void PlaySfx(AudioClip clip)
+    {
+        if (sfxSource == null || clip == null)
+            return;
+
+        sfxSource.PlayOneShot(clip);
     }
 }

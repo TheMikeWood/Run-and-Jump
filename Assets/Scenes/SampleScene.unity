@@ -2857,6 +2857,7 @@ MonoBehaviour:
   coyoteTime: 0.15
   runHitbox: {fileID: 1805668777}
   slideHitbox: {fileID: 58261083}
+  swipeThreshold: 80
 --- !u!114 &705676212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4620,7 +4621,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "HOW TO PLAY\r\n\r\nSPACE \u2014 \nJump / Double Jump\r\n\r\nSlide  \u2014
-    \r \nS / \u2193 / CTRL\n\r\nAvoid enemies.\r\nSurvive until the night."
+    \r \nS / \u2193 / CTRL\n\nPHONE / TOUCH\nTap \u2014 Jump / Double Jump\nSwipe
+    Down \u2014 Slide\n\r\nAvoid enemies.\r\nSurvive until the night."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b7167bf510a64b5448fec555b35b3026, type: 2}
   m_sharedMaterial: {fileID: -8385395671950298351, guid: b7167bf510a64b5448fec555b35b3026, type: 2}
@@ -4647,8 +4649,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
