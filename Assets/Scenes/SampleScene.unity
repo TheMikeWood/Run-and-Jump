@@ -2306,7 +2306,7 @@ MonoBehaviour:
   taglineText: {fileID: 870233362}
   titleObject: {fileID: 956277621}
   taglineObject: {fileID: 870233360}
-  startButtonObject: {fileID: 0}
+  startButtonObject: {fileID: 290580733}
   optionsButtonObject: {fileID: 1129922133}
   optionsPanel: {fileID: 1292523362}
   controlsPanel: {fileID: 1290507343}
