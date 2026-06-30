@@ -3269,6 +3269,10 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 8a839206ee825504ebe29c7ac7f6420a, type: 3}
   - {fileID: 21300000, guid: d2ac5f167eaddd54cb241a400288cfd5, type: 3}
   - {fileID: 21300000, guid: 1000a6b9d5aab1c499b0e9de1811ab16, type: 3}
+  - {fileID: 21300000, guid: 230d00653d123c742b5e6ff475367d52, type: 3}
+  - {fileID: 21300000, guid: 84b59cad8d0f34d4ebbbf4c02b50dc6d, type: 3}
+  - {fileID: 21300000, guid: feab5388f91e0424e966ce898f92fd7a, type: 3}
+  - {fileID: 21300000, guid: 8919d1831da31584688241caed4ec92c, type: 3}
   jumpSprites:
   - {fileID: 21300000, guid: dc3a6381f95241a4e971f8a4129cbcd4, type: 3}
   - {fileID: 21300000, guid: 84b4386f14f017a4f9273e8f9b1ea009, type: 3}
