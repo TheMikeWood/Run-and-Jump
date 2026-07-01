@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
     private const float NightSpeed   = 20f;
     private const float TwistedSpeed = 35f;
 
-    // Lines fire every 5 speed units within each phase
+    // Lines fire every 5 speed units within each phase, issue: the days are too short to actually play all messages from mom
     private const float LineInterval = 5f;
     private float nextLineAt;
 
