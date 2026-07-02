@@ -586,10 +586,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   objects:
   - prefab: {fileID: 1012742568968118913, guid: b7444f6086fb97947ac0cf79b951c0ad, type: 3}
-    spawnChance: 0.5
+    spawnChance: 0.4
   - prefab: {fileID: 7168741782520461124, guid: 6df82f7bce1728f4d8c2b7cb2db8191e, type: 3}
-    spawnChance: 0.3
+    spawnChance: 0.2
   - prefab: {fileID: 4619183439598286633, guid: 56a6d15238b99994e8a3365c5a5b4805, type: 3}
+    spawnChance: 0.1
+  - prefab: {fileID: 8986204779691762719, guid: 82af54b5b25070e4ba7bfe70bbf4d0eb, type: 3}
+    spawnChance: 0.1
+  - prefab: {fileID: 1864240679205607089, guid: 94a7297c5ce06ef49a98dbe81c4081d1, type: 3}
     spawnChance: 0.1
   minSpawnRate: 1
   maxSpawnRate: 2
