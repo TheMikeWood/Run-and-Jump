@@ -6,10 +6,13 @@ public class AnimatedSprite : MonoBehaviour
     public Sprite[] jumpSprites;
     public Sprite[] doubleJumpSprites;
     public Sprite[] slideSprites;
+    public Sprite[] deathSprites;
 
     private SpriteRenderer spriteRenderer;
     private Sprite[] currentSprites;
     private int frame;
+
+    private bool playingDeath = false;
 
     private void Awake()
     {
@@ -22,6 +25,7 @@ public class AnimatedSprite : MonoBehaviour
 
         currentSprites = null;
         frame = 0;
+        playingDeath = false;
 
         PlayRunAnimation();
 
@@ -43,6 +47,19 @@ public class AnimatedSprite : MonoBehaviour
         }
 
         spriteRenderer.sprite = currentSprites[frame];
+
+        if (playingDeath)
+        {
+            // Death animation plays once and freezes on the last frame
+            if (frame < currentSprites.Length - 1)
+            {
+                frame++;
+                Invoke(nameof(Animate), 0.12f);
+            }
+
+            return;
+        }
+
         frame = (frame + 1) % currentSprites.Length;
 
         float animationSpeed = 8f;
@@ -71,21 +88,31 @@ public class AnimatedSprite : MonoBehaviour
 
     public void PlayRunAnimation()
     {
+        playingDeath = false;
         SetAnimation(runSprites);
     }
 
     public void PlayJumpAnimation()
     {
+        playingDeath = false;
         SetAnimation(jumpSprites);
     }
 
     public void PlayDoubleJumpAnimation()
     {
+        playingDeath = false;
         SetAnimation(doubleJumpSprites);
     }
 
     public void PlaySlideAnimation()
     {
+        playingDeath = false;
         SetAnimation(slideSprites);
+    }
+
+    public void PlayDeathAnimation()
+    {
+        playingDeath = true;
+        SetAnimation(deathSprites);
     }
 }

@@ -40,6 +40,10 @@ public class Player : MonoBehaviour
     [SerializeField] private AudioClip doubleJumpSfx;
     [SerializeField] private AudioClip slideSfx;
 
+    [Header("Death")]
+    [SerializeField] private AudioClip deathSfx;
+    private bool isDead = false;
+
     private bool wasGrounded = false;
 
     private void Awake()
@@ -64,6 +68,7 @@ public class Player : MonoBehaviour
         wasGrounded = false;
 
         touchStarted = false;
+        isDead = false;
 
         if (runHitbox != null)
             runHitbox.SetActive(true);
@@ -76,6 +81,9 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (isDead)
+            return;
+
         bool grounded = character.isGrounded;
 
         if (grounded)
@@ -236,6 +244,26 @@ public class Player : MonoBehaviour
         {
             animatedSprite?.PlayRunAnimation();
         }
+    }
+
+    public void PlayDeath()
+    {
+        if (isDead)
+            return;
+
+        isDead = true;
+        direction = Vector3.zero;
+        isSliding = false;
+        slideTimer = 0f;
+
+        if (runHitbox != null)
+            runHitbox.SetActive(false);
+
+        if (slideHitbox != null)
+            slideHitbox.SetActive(false);
+
+        animatedSprite?.PlayDeathAnimation();
+        PlaySfx(deathSfx);
     }
 
     private void PlaySfx(AudioClip clip)

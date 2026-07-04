@@ -1368,6 +1368,7 @@ MonoBehaviour:
   retryButton: {fileID: 682967435}
   musicSource: {fileID: 698960437}
   titleMusicSource: {fileID: 21027394}
+  gameOverDelay: 1.2
 --- !u!4 &309156407
 Transform:
   m_ObjectHideFlags: 0
@@ -3256,6 +3257,7 @@ MonoBehaviour:
   jumpSfx: {fileID: 8300000, guid: d611b2f81d3deb34ba49cf6eb11f81a1, type: 3}
   doubleJumpSfx: {fileID: 8300000, guid: c95c1b6e3319e4143b4517ca91207091, type: 3}
   slideSfx: {fileID: 8300000, guid: 782b96ba0896229469ea078a2c60f694, type: 3}
+  deathSfx: {fileID: 0}
 --- !u!114 &705676212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3300,6 +3302,17 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cdabd7f0f9ca3cb4c9a6d5c7b947c7fd, type: 3}
   - {fileID: 21300000, guid: 0719a9465869a2340a419947eed02745, type: 3}
   - {fileID: 21300000, guid: 2af74fda7147adf488122f08b6ac0721, type: 3}
+  deathSprites:
+  - {fileID: 21300000, guid: c2563dbcb89870e4dbedf2d70fbf8db9, type: 3}
+  - {fileID: 21300000, guid: 55c5daa6619d38045a43a0666f34949c, type: 3}
+  - {fileID: 21300000, guid: 3b2c2cc2fa000ee45b9e8bcdd7b98ae3, type: 3}
+  - {fileID: 21300000, guid: 34e4f293dbaa2f04aa92346b9c23f53d, type: 3}
+  - {fileID: 21300000, guid: 85bdcd5ee6373fb4fb432672a65fcec4, type: 3}
+  - {fileID: 21300000, guid: a536cd466eb047f459755e71cd017390, type: 3}
+  - {fileID: 21300000, guid: cf6de2e4bb1b0c24fb1cf55a07ae3d68, type: 3}
+  - {fileID: 21300000, guid: eea089563d2f73946b3d88bb06340bc8, type: 3}
+  - {fileID: 21300000, guid: ac92c8af17459194a84e00d892634005, type: 3}
+  - {fileID: 21300000, guid: 04dc5a77d9855c141b4d0891abaf9ae8, type: 3}
 --- !u!54 &705676213
 Rigidbody:
   m_ObjectHideFlags: 0

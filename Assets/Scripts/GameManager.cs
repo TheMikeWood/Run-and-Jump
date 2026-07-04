@@ -19,6 +19,9 @@ public class GameManager : MonoBehaviour
     public AudioSource musicSource;
     public AudioSource titleMusicSource;
 
+    [Header("Death")]
+    [SerializeField] private float gameOverDelay = 1f;
+
     private Player player;
     private Spawner spawner;
     private float score;
@@ -29,7 +32,7 @@ public class GameManager : MonoBehaviour
     private const float NightSpeed   = 20f;
     private const float TwistedSpeed = 35f;
 
-    // Lines fire every 5 speed units within each phase, issue: the days are too short to actually play all messages from mom
+    // Lines fire every 5 speed units
     private const float LineInterval = 5f;
     private float nextLineAt;
 
@@ -124,6 +127,8 @@ public class GameManager : MonoBehaviour
 
     public void NewGame()
     {
+        CancelInvoke(nameof(ShowGameOverScreen));
+
         Obstacle[] obstacles = FindObjectsOfType<Obstacle>();
         foreach (var obstacle in obstacles)
             Destroy(obstacle.gameObject);
@@ -131,7 +136,10 @@ public class GameManager : MonoBehaviour
         gameSpeed    = initialGameSpeed;
         score        = 0f;
         enabled      = true;
-        nextLineAt   = initialGameSpeed + LineInterval;
+
+        // First Mom line happens shortly after the game starts.
+        nextLineAt   = initialGameSpeed + 1f;
+
         dayIndex     = 0;
         sunsetIndex  = 0;
         nightIndex   = 0;
@@ -156,13 +164,30 @@ public class GameManager : MonoBehaviour
         gameSpeed = 0f;
         enabled   = false;
 
-        player.gameObject.SetActive(false);
-        spawner.gameObject.SetActive(false);
-        gameOverText.gameObject.SetActive(true);
-        retryButton.gameObject.SetActive(true);
+        if (spawner != null)
+            spawner.gameObject.SetActive(false);
+
+        gameOverText.gameObject.SetActive(false);
+        retryButton.gameObject.SetActive(false);
 
         StopMusic();
         UpdateHiscore();
+
+        if (player != null)
+        {
+            player.PlayDeath();
+        }
+
+        Invoke(nameof(ShowGameOverScreen), gameOverDelay);
+    }
+
+    private void ShowGameOverScreen()
+    {
+        if (player != null)
+            player.gameObject.SetActive(false);
+
+        gameOverText.gameObject.SetActive(true);
+        retryButton.gameObject.SetActive(true);
     }
 
     private void Update()
@@ -223,11 +248,13 @@ public class GameManager : MonoBehaviour
     private void UpdateHiscore()
     {
         float hiscore = PlayerPrefs.GetFloat("hiscore", 0);
+
         if (score > hiscore)
         {
             hiscore = score;
             PlayerPrefs.SetFloat("hiscore", hiscore);
         }
+
         hiscoreText.text = Mathf.FloorToInt(hiscore).ToString("D5");
     }
 
@@ -254,11 +281,13 @@ public class GameManager : MonoBehaviour
     private string[] GetRandomSubset(string[] pool, int count)
     {
         string[] shuffled = (string[])pool.Clone();
+
         for (int i = shuffled.Length - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
             (shuffled[i], shuffled[j]) = (shuffled[j], shuffled[i]);
         }
+
         string[] result = new string[count];
         System.Array.Copy(shuffled, result, count);
         return result;
