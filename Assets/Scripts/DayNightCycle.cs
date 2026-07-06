@@ -9,15 +9,18 @@ public class DayNightCycle : MonoBehaviour
     public Sprite nightSprite;
     public Sprite twistedSprite;
 
-    [Header("Speed Thresholds")]
-    public float sunsetSpeed = 10f;   // matches StreetLamp.glowStartSpeed
-    public float nightSpeed = 20f;    // matches StreetLamp.glowFullSpeed
-    public float twistedSpeed = 35f;
-
     [Header("Crossfade")]
     public float crossfadeDuration = 1.5f;
 
-    private enum Phase { Day, Sunset, Night, Twisted, Crossfading }
+    private enum Phase
+    {
+        Day,
+        Sunset,
+        Night,
+        Twisted,
+        Crossfading,
+    }
+
     private Phase currentPhase = Phase.Day;
     private Phase nextPhase;
 
@@ -52,37 +55,54 @@ public class DayNightCycle : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance == null) return;
-
-        float speed = GameManager.Instance.gameSpeed;
-
         if (currentPhase == Phase.Crossfading)
         {
             TickCrossfade();
+        }
+    }
+
+    public void SetDay()
+    {
+        SetPhase(Phase.Day, daySprite);
+    }
+
+    public void SetSunset()
+    {
+        SetPhase(Phase.Sunset, sunsetSprite);
+    }
+
+    public void SetNight()
+    {
+        SetPhase(Phase.Night, nightSprite);
+    }
+
+    public void SetTwisted()
+    {
+        SetPhase(Phase.Twisted, twistedSprite);
+    }
+
+    private void SetPhase(Phase targetPhase, Sprite targetSprite)
+    {
+        if (targetSprite == null)
+        {
+            Debug.LogWarning($"DayNightCycle: sprite for {targetPhase} is not assigned.");
             return;
         }
 
-        if (currentPhase == Phase.Day && speed >= sunsetSpeed)
-            BeginCrossfade(Phase.Sunset, sunsetSprite);
-        else if (currentPhase == Phase.Sunset && speed >= nightSpeed)
-            BeginCrossfade(Phase.Night, nightSprite);
-        else if (currentPhase == Phase.Night && speed >= twistedSpeed)
-            BeginCrossfade(Phase.Twisted, twistedSprite);
+        if (currentPhase == targetPhase)
+            return;
+
+        BeginCrossfade(targetPhase, targetSprite);
     }
 
     private void BeginCrossfade(Phase target, Sprite incoming)
     {
-        if (incoming == null)
-        {
-            Debug.LogWarning($"DayNightCycle: sprite for {target} is not assigned.");
-            return;
-        }
-
         nextPhase = target;
         currentPhase = Phase.Crossfading;
         crossfadeTimer = 0f;
 
         backgroundRenderer.color = Color.white;
+
         backRenderer.sprite = incoming;
         backRenderer.color = new Color(1f, 1f, 1f, 0f);
     }
@@ -104,8 +124,10 @@ public class DayNightCycle : MonoBehaviour
         {
             backgroundRenderer.sprite = backRenderer.sprite;
             backgroundRenderer.color = Color.white;
+
             backRenderer.sprite = null;
             backRenderer.color = new Color(1f, 1f, 1f, 0f);
+
             currentPhase = nextPhase;
         }
     }
@@ -113,10 +135,16 @@ public class DayNightCycle : MonoBehaviour
     public void ResetCycle()
     {
         currentPhase = Phase.Day;
+        nextPhase = Phase.Day;
         crossfadeTimer = 0f;
+
         backgroundRenderer.sprite = daySprite;
         backgroundRenderer.color = Color.white;
-        backRenderer.sprite = null;
-        backRenderer.color = new Color(1f, 1f, 1f, 0f);
+
+        if (backRenderer != null)
+        {
+            backRenderer.sprite = null;
+            backRenderer.color = new Color(1f, 1f, 1f, 0f);
+        }
     }
 }

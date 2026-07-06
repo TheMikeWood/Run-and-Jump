@@ -1,47 +1,99 @@
-using UnityEngine;
+using System.Collections;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [Header("Speed")]
     public float initialGameSpeed = 5f;
     public float gamesSpeedIncrease = 0.1f;
+    public float maxStageSpeed = 25f;
     public float gameSpeed { get; private set; }
 
+    [Header("UI")]
     public TextMeshProUGUI gameOverText;
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI hiscoreText;
     public TextMeshProUGUI narrativeText;
     public Button retryButton;
 
+    [Header("Audio")]
     public AudioSource musicSource;
     public AudioSource titleMusicSource;
 
-    [Header("Death")]
-    [SerializeField] private float gameOverDelay = 1f;
+    [Header("Stage Music")]
+    [SerializeField]
+    private AudioClip dayMusic;
 
+    [SerializeField]
+    private AudioClip sunsetMusic;
+
+    [SerializeField]
+    private AudioClip nightMusic;
+
+    [SerializeField]
+    private AudioClip twistedMusic;
+
+    [Header("Death")]
+    [SerializeField]
+    private float gameOverDelay = 1f;
+
+    [Header("Stage Lengths")]
+    [SerializeField]
+    private float dayStageLength = 75f;
+
+    [SerializeField]
+    private float sunsetStageLength = 75f;
+
+    [SerializeField]
+    private float nightStageLength = 105f;
+
+    [SerializeField]
+    private float twistedStageLength = 105f;
+
+    [Header("Stage Screens")]
+    [SerializeField]
+    private GameObject stagePanel;
+
+    [SerializeField]
+    private TextMeshProUGUI stageText;
+
+    [SerializeField]
+    private float stageEndScreenDuration = 2f;
+
+    [SerializeField]
+    private float stageStartScreenDuration = 2f;
+
+    private bool stageScreenActive = false;
+    private Coroutine stageRoutine;
     private Player player;
     private Spawner spawner;
     private float score;
     private float hiscore;
 
-    // Phase thresholds — match DayNightCycle and StreetLamp
-    private const float SunsetSpeed  = 10f;
-    private const float NightSpeed   = 20f;
-    private const float TwistedSpeed = 35f;
+    private enum GameStage
+    {
+        Day,
+        Sunset,
+        Night,
+        Twisted,
+    }
 
-    // Lines fire every 5 speed units
-    private const float LineInterval = 5f;
-    private float nextLineAt;
+    private GameStage currentStage;
+    private float stageTimer = 0f;
+    private float nextMessageTime = 0f;
+    private float currentStageLength = 0f;
 
-    private int dayIndex     = 0;
-    private int sunsetIndex  = 0;
-    private int nightIndex   = 0;
+    private int dayIndex = 0;
+    private int sunsetIndex = 0;
+    private int nightIndex = 0;
     private int twistedIndex = 0;
 
-    private string[] dayLines = {
+    private string[] dayLines =
+    {
         "Mom: Grace, dinner's almost ready.",
         "Mom: Don't forget your jacket.",
         "Mom: Be home before dark, okay?",
@@ -51,7 +103,8 @@ public class GameManager : MonoBehaviour
         "Mom: I made your favorite tonight.",
     };
 
-    private string[] sunsetLines = {
+    private string[] sunsetLines =
+    {
         "Mom: Grace, the streetlights are coming on.",
         "Mom: Honey, it's getting late.",
         "Mom: Where are you? It's almost dark.",
@@ -61,7 +114,8 @@ public class GameManager : MonoBehaviour
         "Mom: Grace? Did your phone die?",
     };
 
-    private string[] nightLines = {
+    private string[] nightLines =
+    {
         "Mom: Grace, call me right now.",
         "Mom: I don't care what happened. Just come home.",
         "Mom: Something feels wrong tonight. Please hurry.",
@@ -74,7 +128,8 @@ public class GameManager : MonoBehaviour
         "Mom: No. Stay inside. I'm coming to you.",
     };
 
-    private string[] twistedLinesPool = {
+    private string[] twistedLinesPool =
+    {
         "Mom: Is that you at the door?",
         "Mom: I can hear screaming outside.",
         "Mom: There's someone in the yard. It doesn't look right.",
@@ -111,7 +166,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        player  = FindObjectOfType<Player>();
+        player = FindObjectOfType<Player>();
         spawner = FindObjectOfType<Spawner>();
 
         player.gameObject.SetActive(false);
@@ -128,41 +183,106 @@ public class GameManager : MonoBehaviour
     public void NewGame()
     {
         CancelInvoke(nameof(ShowGameOverScreen));
+        CancelInvoke(nameof(HideNarrativeText));
+
+        if (stageRoutine != null)
+            StopCoroutine(stageRoutine);
+
+        stageScreenActive = false;
 
         Obstacle[] obstacles = FindObjectsOfType<Obstacle>();
         foreach (var obstacle in obstacles)
             Destroy(obstacle.gameObject);
 
-        gameSpeed    = initialGameSpeed;
-        score        = 0f;
-        enabled      = true;
+        score = 0f;
+        enabled = true;
 
-        // First Mom line happens shortly after the game starts.
-        nextLineAt   = initialGameSpeed + 1f;
-
-        dayIndex     = 0;
-        sunsetIndex  = 0;
-        nightIndex   = 0;
+        dayIndex = 0;
+        sunsetIndex = 0;
+        nightIndex = 0;
         twistedIndex = 0;
 
         activeTwistedLines = GetRandomSubset(twistedLinesPool, 8);
 
         player.gameObject.SetActive(true);
-        spawner.gameObject.SetActive(true);
+        spawner.gameObject.SetActive(false);
+
         gameOverText.gameObject.SetActive(false);
         retryButton.gameObject.SetActive(false);
         narrativeText.gameObject.SetActive(false);
+
+        if (stagePanel != null)
+            stagePanel.SetActive(false);
 
         FindObjectOfType<DayNightCycle>()?.ResetCycle();
 
         RestartMusic();
         UpdateHiscore();
+
+        stageRoutine = StartCoroutine(BeginStageRoutine(GameStage.Day, false));
+    }
+
+    private void StartStage(GameStage stage)
+    {
+        currentStage = stage;
+        stageTimer = 0f;
+        gameSpeed = initialGameSpeed;
+
+        DayNightCycle dayNightCycle = FindObjectOfType<DayNightCycle>();
+
+        switch (stage)
+        {
+            case GameStage.Day:
+                currentStageLength = dayStageLength;
+                nextMessageTime = GetMessageSpacing(dayStageLength, dayLines.Length);
+                dayNightCycle?.SetDay();
+                PlayStageMusic(dayMusic);
+                break;
+
+            case GameStage.Sunset:
+                currentStageLength = sunsetStageLength;
+                nextMessageTime = GetMessageSpacing(sunsetStageLength, sunsetLines.Length);
+                dayNightCycle?.SetSunset();
+                PlayStageMusic(sunsetMusic);
+                break;
+
+            case GameStage.Night:
+                currentStageLength = nightStageLength;
+                nextMessageTime = GetMessageSpacing(nightStageLength, nightLines.Length);
+                dayNightCycle?.SetNight();
+                PlayStageMusic(nightMusic);
+                break;
+
+            case GameStage.Twisted:
+                currentStageLength = twistedStageLength;
+                nextMessageTime = GetMessageSpacing(twistedStageLength, activeTwistedLines.Length);
+                dayNightCycle?.SetTwisted();
+                PlayStageMusic(twistedMusic);
+                break;
+        }
+    }
+
+    private float GetMessageSpacing(float stageLength, int messageCount)
+    {
+        if (messageCount <= 0)
+            return stageLength;
+
+        // This spaces messages across the stage with a little breathing room.
+        return stageLength / (messageCount + 1);
     }
 
     public void GameOver()
     {
+        if (stageRoutine != null)
+            StopCoroutine(stageRoutine);
+
+        stageScreenActive = false;
+
+        if (stagePanel != null)
+            stagePanel.SetActive(false);
+
         gameSpeed = 0f;
-        enabled   = false;
+        enabled = false;
 
         if (spawner != null)
             spawner.gameObject.SetActive(false);
@@ -192,44 +312,200 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if (stageScreenActive)
+            return;
+
         gameSpeed += gamesSpeedIncrease * Time.deltaTime;
-        score     += gameSpeed * Time.deltaTime;
+        gameSpeed = Mathf.Min(gameSpeed, maxStageSpeed);
+
+        score += gameSpeed * Time.deltaTime;
         scoreText.text = Mathf.FloorToInt(score).ToString("D5");
 
+        UpdateStage();
+    }
+
+    private void UpdateStage()
+    {
+        stageTimer += Time.deltaTime;
+
         CheckNarrativeMilestones();
+
+        if (stageTimer >= currentStageLength)
+        {
+            AdvanceStage();
+        }
+    }
+
+    private void AdvanceStage()
+    {
+        if (stageScreenActive)
+            return;
+
+        switch (currentStage)
+        {
+            case GameStage.Day:
+                stageRoutine = StartCoroutine(BeginStageRoutine(GameStage.Sunset, true));
+                break;
+
+            case GameStage.Sunset:
+                stageRoutine = StartCoroutine(BeginStageRoutine(GameStage.Night, true));
+                break;
+
+            case GameStage.Night:
+                stageRoutine = StartCoroutine(BeginStageRoutine(GameStage.Twisted, true));
+                break;
+
+            case GameStage.Twisted:
+                // Stay in Twisted forever after this.
+                currentStageLength = Mathf.Infinity;
+                break;
+        }
+    }
+
+    private IEnumerator BeginStageRoutine(GameStage nextStage, bool showEndScreen)
+    {
+        stageScreenActive = true;
+        gameSpeed = 0f;
+
+        if (spawner != null)
+            spawner.gameObject.SetActive(false);
+
+        ClearObstacles();
+
+        if (showEndScreen)
+        {
+            ShowStageScreen(GetStageCompleteText(currentStage));
+            yield return new WaitForSecondsRealtime(stageEndScreenDuration);
+        }
+
+        StartStage(nextStage);
+
+        ShowStageScreen(GetStageStartText(nextStage));
+        yield return new WaitForSecondsRealtime(stageStartScreenDuration);
+
+        HideStageScreen();
+
+        if (spawner != null)
+            spawner.gameObject.SetActive(true);
+
+        stageScreenActive = false;
     }
 
     private void CheckNarrativeMilestones()
     {
-        if (gameSpeed < nextLineAt) return;
-
-        nextLineAt += LineInterval;
+        if (stageTimer < nextMessageTime)
+            return;
 
         string line = null;
 
-        if (gameSpeed < SunsetSpeed)
+        switch (currentStage)
         {
-            if (dayIndex < dayLines.Length)
-                line = dayLines[dayIndex++];
-        }
-        else if (gameSpeed < NightSpeed)
-        {
-            if (sunsetIndex < sunsetLines.Length)
-                line = sunsetLines[sunsetIndex++];
-        }
-        else if (gameSpeed < TwistedSpeed)
-        {
-            if (nightIndex < nightLines.Length)
-                line = nightLines[nightIndex++];
-        }
-        else
-        {
-            if (twistedIndex < activeTwistedLines.Length)
-                line = activeTwistedLines[twistedIndex++];
+            case GameStage.Day:
+                if (dayIndex < dayLines.Length)
+                {
+                    line = dayLines[dayIndex++];
+                    nextMessageTime =
+                        GetMessageSpacing(dayStageLength, dayLines.Length) * (dayIndex + 1);
+                }
+                break;
+
+            case GameStage.Sunset:
+                if (sunsetIndex < sunsetLines.Length)
+                {
+                    line = sunsetLines[sunsetIndex++];
+                    nextMessageTime =
+                        GetMessageSpacing(sunsetStageLength, sunsetLines.Length)
+                        * (sunsetIndex + 1);
+                }
+                break;
+
+            case GameStage.Night:
+                if (nightIndex < nightLines.Length)
+                {
+                    line = nightLines[nightIndex++];
+                    nextMessageTime =
+                        GetMessageSpacing(nightStageLength, nightLines.Length) * (nightIndex + 1);
+                }
+                break;
+
+            case GameStage.Twisted:
+                if (twistedIndex < activeTwistedLines.Length)
+                {
+                    line = activeTwistedLines[twistedIndex++];
+                    nextMessageTime =
+                        GetMessageSpacing(twistedStageLength, activeTwistedLines.Length)
+                        * (twistedIndex + 1);
+                }
+                break;
         }
 
         if (line != null)
             ShowNarrativeText(line);
+    }
+
+    private void ShowStageScreen(string text)
+    {
+        if (stageText != null)
+            stageText.text = text;
+
+        if (stagePanel != null)
+            stagePanel.SetActive(true);
+    }
+
+    private void HideStageScreen()
+    {
+        if (stagePanel != null)
+            stagePanel.SetActive(false);
+    }
+
+    private void ClearObstacles()
+    {
+        Obstacle[] obstacles = FindObjectsOfType<Obstacle>();
+
+        foreach (var obstacle in obstacles)
+            Destroy(obstacle.gameObject);
+    }
+
+    private string GetStageCompleteText(GameStage stage)
+    {
+        switch (stage)
+        {
+            case GameStage.Day:
+                return "DAY COMPLETE";
+
+            case GameStage.Sunset:
+                return "SUNSET COMPLETE";
+
+            case GameStage.Night:
+                return "NIGHT COMPLETE";
+
+            case GameStage.Twisted:
+                return "TWISTED COMPLETE";
+
+            default:
+                return "STAGE COMPLETE";
+        }
+    }
+
+    private string GetStageStartText(GameStage stage)
+    {
+        switch (stage)
+        {
+            case GameStage.Day:
+                return "DAY\n\nGet home before dark.";
+
+            case GameStage.Sunset:
+                return "SUNSET\n\nThe streetlights are coming on.";
+
+            case GameStage.Night:
+                return "NIGHT\n\nStay in the light.";
+
+            case GameStage.Twisted:
+                return "TWISTED\n\nDo not look back.";
+
+            default:
+                return "STAGE START";
+        }
     }
 
     private void ShowNarrativeText(string line)
@@ -262,14 +538,18 @@ public class GameManager : MonoBehaviour
     {
         if (titleMusicSource != null)
             titleMusicSource.Stop();
+    }
 
-        if (musicSource != null)
-        {
-            musicSource.Stop();
-            musicSource.time  = 0f;
-            musicSource.pitch = 1f;
-            musicSource.Play();
-        }
+    private void PlayStageMusic(AudioClip clip)
+    {
+        if (musicSource == null || clip == null)
+            return;
+
+        musicSource.Stop();
+        musicSource.clip = clip;
+        musicSource.time = 0f;
+        musicSource.pitch = 1f;
+        musicSource.Play();
     }
 
     private void StopMusic()

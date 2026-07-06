@@ -5,12 +5,18 @@ using UnityEngine.UI;
 public class AudioOptions : MonoBehaviour
 {
     [Header("Audio Mixer")]
-    [SerializeField] private AudioMixer audioMixer;
+    [SerializeField]
+    private AudioMixer audioMixer;
 
     [Header("Sliders")]
-    [SerializeField] private Slider bgmSlider;
-    [SerializeField] private Slider sfxSlider;
-    [SerializeField] private Slider voiceSlider;
+    [SerializeField]
+    private Slider bgmSlider;
+
+    [SerializeField]
+    private Slider sfxSlider;
+
+    [SerializeField]
+    private Slider voiceSlider;
 
     private const string BGMVolumeKey = "BGMVolume";
     private const string SFXVolumeKey = "SFXVolume";
