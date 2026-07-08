@@ -245,7 +245,7 @@ They're trapped in an entire city that changes around them.
 
 ## Developer
 
-**Mike Woodard**
+**Michael Woodard**
 
 Founder of **Slime Key Studios**
 
