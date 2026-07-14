@@ -95,7 +95,6 @@ public class GameManager : MonoBehaviour
     private string[] dayLines =
     {
         "Mom: Grace, your brother came home with a hole in his backpack. He has dropped things all over the neighborhood. Can you please get them back on your way home?",
-        "Mom: Don't forget your jacket.",
         "Mom: Be home before dark, okay?",
         "Mom: I love you. Stay on the main road.",
         "Mom: Text me when you're close.",
