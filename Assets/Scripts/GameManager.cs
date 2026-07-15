@@ -91,6 +91,15 @@ public class GameManager : MonoBehaviour
     private int sunsetIndex = 0;
     private int nightIndex = 0;
     private int twistedIndex = 0;
+// You know your father would be so proud of you.
+// I can't believe they gave you a full ride to Prairie View. 
+// I made you my special spaghetti to celebrate. 
+// Get home soon sweetie.
+// Grace Marie Jones, you're out entirely too late.
+// Call me right now?
+// Grace you're scaring me. Where are you?
+// Is that you at the door?
+// Are you seeing all this red mist? 
 
     private string[] dayLines =
     {
