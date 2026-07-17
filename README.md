@@ -140,7 +140,11 @@ Survive as long as you can.
 | Double Jump | Space (Again) |
 | Slide | Left Ctrl / Down |
 
+
 *(Controls may change as development continues.)*
+
+added touch controls
+tap to jump and swipe down to slide
 
 ---
 
