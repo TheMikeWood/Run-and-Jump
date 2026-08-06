@@ -62,6 +62,22 @@ public class GameManager : MonoBehaviour
     private TextMeshProUGUI stageText;
 
     [SerializeField]
+    private Image stageClearImage;
+
+    [Header("Stage Clear Images")]
+    [SerializeField]
+    private Sprite dayClearImage;
+
+    [SerializeField]
+    private Sprite sunsetClearImage;
+
+    [SerializeField]
+    private Sprite nightClearImage;
+
+    [SerializeField]
+    private Sprite twistedClearImage;
+
+    [SerializeField]
     private float stageEndScreenDuration = 2f;
 
     [SerializeField]
@@ -384,13 +400,14 @@ public class GameManager : MonoBehaviour
 
         if (showEndScreen)
         {
-            ShowStageScreen(GetStageCompleteText(currentStage));
+            ShowStageScreen(GetStageCompleteText(currentStage), GetStageClearImage(currentStage));
+
             yield return new WaitForSecondsRealtime(stageEndScreenDuration);
         }
 
         StartStage(nextStage);
 
-        ShowStageScreen(GetStageStartText(nextStage));
+        ShowStageScreen(GetStageStartText(nextStage), null);
         yield return new WaitForSecondsRealtime(stageStartScreenDuration);
 
         HideStageScreen();
@@ -453,10 +470,16 @@ public class GameManager : MonoBehaviour
             ShowNarrativeText(line);
     }
 
-    private void ShowStageScreen(string text)
+    private void ShowStageScreen(string text, Sprite image = null)
     {
         if (stageText != null)
             stageText.text = text;
+
+        if (stageClearImage != null)
+        {
+            stageClearImage.sprite = image;
+            stageClearImage.gameObject.SetActive(image != null);
+        }
 
         if (stagePanel != null)
             stagePanel.SetActive(true);
@@ -464,6 +487,12 @@ public class GameManager : MonoBehaviour
 
     private void HideStageScreen()
     {
+        if (stageClearImage != null)
+        {
+            stageClearImage.sprite = null;
+            stageClearImage.gameObject.SetActive(false);
+        }
+
         if (stagePanel != null)
             stagePanel.SetActive(false);
     }
